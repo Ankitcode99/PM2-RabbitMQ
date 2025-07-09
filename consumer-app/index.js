@@ -1,6 +1,7 @@
 // consumer.js
 const amqp = require('amqplib');
-
+const dotenv = require('dotenv');
+dotenv.config();
 
 let workstats = {};
 
@@ -10,6 +11,7 @@ setInterval(() => {
 
 async function startConsumer() {
   try {
+    console.log(process.env.RABBITMQ_URL, process.env.QUEUE_NAME);
     const connection = await amqp.connect(process.env.RABBITMQ_URL);
     const channel = await connection.createChannel();
 
@@ -17,7 +19,7 @@ async function startConsumer() {
     channel.prefetch(1);
 
     console.log(`Consumer ${process.pid} is waiting for messages`);
-
+    await channel.prefetch(5);
     channel.consume(process.env.QUEUE_NAME, async (msg) => {
       const content = JSON.parse(msg.content.toString());
       console.log(new Date(),`  Consumer ${process.pid} received:`, content);
